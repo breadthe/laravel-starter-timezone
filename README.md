@@ -41,11 +41,11 @@ composer require breadthe/laravel-starter-timezone
 php artisan starter-timezone:install
 ```
 
-The interactive command asks three questions, each defaulting to **yes**:
+The interactive command presents one multi-select prompt. All three operations are selected by default; use **Space** to toggle an operation and **Enter** to continue:
 
-1. Add a `timezone` string column to `users`, defaulting to `UTC`.
-2. Add a timezone select field to registration, including browser detection.
-3. Add a timezone select field and a **Detect** button to `/settings/profile`.
+- Add a `timezone` string column to `users`, defaulting to `UTC`.
+- Add a timezone select field to registration, including browser detection.
+- Add a timezone select field and a **Detect** button to `/settings/profile`.
 
 Finish by running the migration:
 

@@ -5,8 +5,19 @@ namespace Breadthe\StarterTimezone\Commands;
 use Breadthe\StarterTimezone\Scaffolding\StarterKitScaffolder;
 use Illuminate\Console\Command;
 
+use function Laravel\Prompts\multiselect;
+
 class InstallCommand extends Command
 {
+    /**
+     * @var array<string, string>
+     */
+    private const OPTIONS = [
+        'migration' => 'Add a timezone column to the users table',
+        'registration' => 'Add a timezone dropdown to the registration page',
+        'profile' => 'Add a timezone dropdown to /settings/profile',
+    ];
+
     protected $signature = 'starter-timezone:install
         {--migration : Add only the users timezone migration}
         {--registration : Add only the registration timezone field}
@@ -18,11 +29,7 @@ class InstallCommand extends Command
 
     public function handle(StarterKitScaffolder $scaffolder): int
     {
-        $options = $this->selectedOptions();
-
-        if ($options === []) {
-            $options = $this->confirmOptions();
-        }
+        $options = $this->installOptions();
 
         if ($options === []) {
             $this->components->warn('No timezone scaffolding was selected.');
@@ -77,16 +84,23 @@ class InstallCommand extends Command
     /**
      * @return array<int, string>
      */
-    private function confirmOptions(): array
+    private function installOptions(): array
     {
-        if ($this->input->isInteractive()) {
-            return array_keys(array_filter([
-                'migration' => $this->confirm('Add a timezone column to the users table?', true),
-                'registration' => $this->confirm('Add a timezone dropdown to the registration page?', true),
-                'profile' => $this->confirm('Add a timezone dropdown to /settings/profile?', true),
-            ]));
+        $selected = $this->selectedOptions();
+
+        if ($selected !== []) {
+            return $selected;
         }
 
-        return ['migration', 'registration', 'profile'];
+        if (! $this->input->isInteractive()) {
+            return array_keys(self::OPTIONS);
+        }
+
+        return multiselect(
+            label: 'Which timezone features would you like to install?',
+            options: self::OPTIONS,
+            default: array_keys(self::OPTIONS),
+            hint: 'Use space to select, enter to confirm.',
+        );
     }
 }

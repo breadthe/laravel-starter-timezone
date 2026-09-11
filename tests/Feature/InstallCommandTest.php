@@ -1,6 +1,35 @@
 <?php
 
+use Breadthe\StarterTimezone\Scaffolding\ScaffoldResult;
+use Breadthe\StarterTimezone\Scaffolding\StarterKitScaffolder;
 use Illuminate\Filesystem\Filesystem;
+
+test('the interactive installer presents a multiselect with every option selected by default', function () {
+    $basePath = sys_get_temp_dir().'/starter-timezone-'.uniqid();
+    $scaffolder = Mockery::mock(StarterKitScaffolder::class);
+
+    $scaffolder->shouldReceive('scaffold')
+        ->once()
+        ->with($basePath, true, true, true, false)
+        ->andReturn(new ScaffoldResult);
+
+    app()->instance(StarterKitScaffolder::class, $scaffolder);
+
+    $this->artisan('starter-timezone:install', [
+        '--path' => $basePath,
+    ])
+        ->expectsChoice(
+            'Which timezone features would you like to install?',
+            ['migration', 'registration', 'profile'],
+            [
+                'migration' => 'Add a timezone column to the users table',
+                'registration' => 'Add a timezone dropdown to the registration page',
+                'profile' => 'Add a timezone dropdown to /settings/profile',
+            ],
+        )
+        ->expectsOutputToContain('Run php artisan migrate')
+        ->assertSuccessful();
+});
 
 test('the installer scaffolds all timezone surfaces non-interactively', function () {
     $basePath = sys_get_temp_dir().'/starter-timezone-'.uniqid();
