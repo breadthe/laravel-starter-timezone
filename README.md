@@ -26,6 +26,14 @@ It does **not** support WorkOS, Inertia, React, Livewire 3 / Volt-era starter ki
 
 Install it immediately after scaffolding, before changing the auth views or profile component. The command recognizes the current Laravel 12/13 Livewire starter-kit registration view at either `resources/views/auth/register.blade.php` or `resources/views/pages/auth/register.blade.php`.
 
+### Compatible project scaffolding
+
+When creating a fresh Laravel project, choose the Livewire frontend stack and Laravel's built-in authentication:
+
+![Compatible Laravel project scaffolding selections](docs/images/laravel-new-compatible-options.png)
+
+![Compatible Laravel authentication feature selections](docs/images/laravel-new-auth-features.png)
+
 ## Installation
 
 ```bash
@@ -45,6 +53,8 @@ Finish by running the migration:
 php artisan migrate
 ```
 
+![Migration command output](docs/images/migrate-command.png)
+
 For unattended provisioning, no option is needed: non-interactive runs select all three operations.
 
 ```bash
@@ -59,6 +69,22 @@ php artisan starter-timezone:install --registration --profile
 ```
 
 The installer stops before writing anything if it cannot recognize a required starter-kit file. It also refuses to patch a file that already mentions `timezone`, protecting hand-written changes. Review that file first; only then use `--force` if you want the installer to continue with the remaining supported changes.
+
+### Installer walkthrough
+
+![Interactive installer walkthrough](docs/images/installation-command.png)
+
+## What it looks like
+
+After installing the package and running the migration, the standard Laravel Livewire starter-kit screens include the timezone field on registration and in profile settings.
+
+### Registration
+
+![Registration page with timezone selection](docs/images/registration-page.png)
+
+### Profile settings
+
+![Profile settings with timezone selection and detection](docs/images/profile-settings-page.png)
 
 ## What is generated
 
