@@ -21,11 +21,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
 
-      - uses: ramsey/composer-install@v3
-        with:
-          composer-options: --prefer-dist --no-interaction --no-progress
-
       - run: composer require --dev laravel/framework:${{ matrix.laravel }} --no-update
-      - run: composer update --prefer-dist --no-interaction --no-progress
+      - run: composer update --with-all-dependencies --prefer-dist --no-interaction --no-progress
       - run: composer format -- --test
       - run: composer test
