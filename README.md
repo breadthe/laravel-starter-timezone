@@ -2,7 +2,11 @@
 
 [![Tests](https://github.com/breadthe/laravel-starter-timezone/actions/workflows/tests.yml/badge.svg)](https://github.com/breadthe/laravel-starter-timezone/actions/workflows/tests.yml)
 
+---
+
 🚨This project is 100% vibe-engineered! It's strictly meant for my own consumption. Use at your own risk!
+
+---
 
 Adds a user's IANA timezone to a fresh Laravel Livewire starter-kit application.
 
