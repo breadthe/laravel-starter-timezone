@@ -2,6 +2,8 @@
 
 use Breadthe\StarterTimezone\Scaffolding\ScaffoldResult;
 use Breadthe\StarterTimezone\Scaffolding\StarterKitScaffolder;
+use Illuminate\Console\Command;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Filesystem\Filesystem;
 
 test('the interactive installer presents a multiselect with every option selected by default', function () {
@@ -26,6 +28,80 @@ test('the interactive installer presents a multiselect with every option selecte
                 'registration' => 'Add a timezone dropdown to the registration page',
                 'profile' => 'Add a timezone dropdown to /settings/profile',
             ],
+        )
+        ->expectsChoice(
+            'Would you like to run the migration automatically after installation?',
+            ['migration'],
+            ['migration' => 'Run the users table migration'],
+        )
+        ->expectsOutputToContain('Run php artisan migrate')
+        ->assertSuccessful();
+});
+
+test('the installer runs only the timezone migration automatically when selected', function () {
+    $files = app(Filesystem::class);
+    $migrationPath = app()->basePath().'/database/migrations/00000000000000_add_timezone_to_users_table.php';
+    $files->ensureDirectoryExists(dirname($migrationPath));
+    $files->put($migrationPath, '<?php');
+
+    $scaffolder = Mockery::mock(StarterKitScaffolder::class);
+    $scaffolder->shouldReceive('scaffold')
+        ->once()
+        ->with(app()->basePath(), true, false, false, false)
+        ->andReturn(new ScaffoldResult);
+
+    app()->instance(StarterKitScaffolder::class, $scaffolder);
+
+    $migrate = new class extends Command
+    {
+        public bool $wasForced = false;
+
+        /** @var array<int, string> */
+        public array $migrationPaths = [];
+
+        protected $signature = 'migrate {--force} {--path=*} {--realpath}';
+
+        public function handle(): int
+        {
+            $this->wasForced = (bool) $this->option('force');
+            $this->migrationPaths = (array) $this->option('path');
+
+            return self::SUCCESS;
+        }
+    };
+
+    app(Kernel::class)->registerCommand($migrate);
+
+    $this->artisan('starter-timezone:install', [
+        '--migration' => true,
+        '--no-interaction' => true,
+    ])->assertSuccessful();
+
+    expect($migrate->wasForced)->toBeTrue()
+        ->and($migrate->migrationPaths)->toContain($migrationPath);
+
+    $files->delete($migrationPath);
+});
+
+test('the installer leaves the migration for manual execution when cleared', function () {
+    $basePath = sys_get_temp_dir().'/starter-timezone-'.uniqid();
+    $scaffolder = Mockery::mock(StarterKitScaffolder::class);
+
+    $scaffolder->shouldReceive('scaffold')
+        ->once()
+        ->with($basePath, true, false, false, false)
+        ->andReturn(new ScaffoldResult);
+
+    app()->instance(StarterKitScaffolder::class, $scaffolder);
+
+    $this->artisan('starter-timezone:install', [
+        '--migration' => true,
+        '--path' => $basePath,
+    ])
+        ->expectsChoice(
+            'Would you like to run the migration automatically after installation?',
+            [],
+            ['migration' => 'Run the users table migration'],
         )
         ->expectsOutputToContain('Run php artisan migrate')
         ->assertSuccessful();
@@ -73,6 +149,7 @@ BLADE);
         '--migration' => true,
         '--path' => $basePath,
         '--force' => true,
+        '--no-interaction' => true,
     ])->assertSuccessful();
 
     expect(glob($basePath.'/database/migrations/*_add_timezone_to_users_table.php'))->toHaveCount(1);

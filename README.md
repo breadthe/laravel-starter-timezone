@@ -47,7 +47,9 @@ The interactive command presents one multi-select prompt. All three operations a
 - Add a timezone select field to registration, including browser detection.
 - Add a timezone select field and a **Detect** button to `/settings/profile`.
 
-Finish by running the migration:
+When the migration option is selected, the installer presents a second one-item multi-select asking whether to run the migration automatically. It is selected by default. If you clear it, the installer prints the migration command for you to run manually.
+
+If you choose not to run it automatically, finish by running the migration manually:
 
 ```bash
 php artisan migrate
@@ -55,7 +57,7 @@ php artisan migrate
 
 ![Migration command output](docs/images/migrate-command.png)
 
-For unattended provisioning, no option is needed: non-interactive runs select all three operations.
+For unattended provisioning, no option is needed: non-interactive runs select all three operations and run only the package migration automatically when installing into the current application. When using `--path` to scaffold another application, the migration is left for that application to run manually.
 
 ```bash
 php artisan starter-timezone:install --no-interaction

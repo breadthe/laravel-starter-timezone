@@ -37,8 +37,11 @@ class InstallCommand extends Command
             return self::SUCCESS;
         }
 
+        $runMigration = $this->migrationOption($options);
+        $basePath = $this->option('path') ?: $this->laravel->basePath();
+
         $result = $scaffolder->scaffold(
-            basePath: $this->option('path') ?: $this->laravel->basePath(),
+            basePath: $basePath,
             addMigration: in_array('migration', $options, true),
             addRegistration: in_array('registration', $options, true),
             addProfile: in_array('profile', $options, true),
@@ -61,10 +64,26 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        if (in_array('migration', $options, true)) {
-            $this->newLine();
-            $this->line('Run <comment>php artisan migrate</comment> when you are ready to apply the users table migration.');
+        if (! in_array('migration', $options, true)) {
+            return self::SUCCESS;
         }
+
+        $migrationPath = $this->migrationPath($basePath);
+
+        if ($runMigration && $this->option('path') === null && $migrationPath !== null) {
+            return $this->call('migrate', [
+                '--path' => $migrationPath,
+                '--realpath' => true,
+                '--force' => true,
+            ]);
+        }
+
+        if ($runMigration && $this->option('path') !== null) {
+            $this->components->warn('Automatic migration was skipped because --path targets a different application.');
+        }
+
+        $this->newLine();
+        $this->line('Run <comment>php artisan migrate</comment> when you are ready to apply the users table migration.');
 
         return self::SUCCESS;
     }
@@ -92,7 +111,7 @@ class InstallCommand extends Command
             return $selected;
         }
 
-        if (! $this->input->isInteractive()) {
+        if (! $this->isInteractive()) {
             return array_keys(self::OPTIONS);
         }
 
@@ -102,5 +121,39 @@ class InstallCommand extends Command
             default: array_keys(self::OPTIONS),
             hint: 'Use space to select, enter to confirm.',
         );
+    }
+
+    /**
+     * @param  array<int, string>  $options
+     */
+    private function migrationOption(array $options): bool
+    {
+        if (! in_array('migration', $options, true)) {
+            return false;
+        }
+
+        if (! $this->isInteractive()) {
+            return true;
+        }
+
+        return multiselect(
+            label: 'Would you like to run the migration automatically after installation?',
+            options: ['migration' => 'Run the users table migration'],
+            default: ['migration'],
+            hint: 'Use space to select, enter to confirm.',
+        ) !== [];
+    }
+
+    private function migrationPath(string $basePath): ?string
+    {
+        $paths = glob($basePath.'/database/migrations/*_add_timezone_to_users_table.php') ?: [];
+
+        return $paths[0] ?? null;
+    }
+
+    private function isInteractive(): bool
+    {
+        return $this->input->isInteractive()
+            && ! $this->input->getParameterOption(['--no-interaction', '-n'], false, true);
     }
 }
