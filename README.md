@@ -47,7 +47,11 @@ The interactive command presents one multi-select prompt. All three operations a
 - Add a timezone select field to registration, including browser detection.
 - Add a timezone select field and a **Detect** button to `/settings/profile`.
 
-When the migration option is selected, the installer presents a second one-item multi-select asking whether to run the migration automatically. It is selected by default. If you clear it, the installer prints the migration command for you to run manually.
+When the migration option is selected, you'll get an additional step offering to run the migration automatically after installing the features. 
+
+![Interactive installer walkthrough](docs/images/installation-command.png)
+
+![Interactive installer walkthrough](docs/images/all-commands.png)
 
 If you choose not to run it automatically, finish by running the migration manually:
 
@@ -71,10 +75,6 @@ php artisan starter-timezone:install --registration --profile
 ```
 
 The installer stops before writing anything if it cannot recognize a required starter-kit file. It also refuses to patch a file that already mentions `timezone`, protecting hand-written changes. Review that file first; only then use `--force` if you want the installer to continue with the remaining supported changes.
-
-### Installer walkthrough
-
-![Interactive installer walkthrough](docs/images/installation-command.png)
 
 ## What it looks like
 
